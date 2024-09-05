@@ -3,9 +3,8 @@
 FROM alpine:3.18 AS rootfs-stage
 
 # environment
-ENV REL=deepin
+ENV REL=bookworm
 ENV ARCH=amd64
-ENV VERSION=v1.4.0
 
 # install packages
 RUN \
@@ -15,12 +14,11 @@ RUN \
     tzdata \
     xz
 
+COPY rootfs.tar.gz /rootfs.tar.gz
+
 # grab base tarball
 RUN \
   mkdir /root-out && \
-  curl -o \
-    /rootfs.tar.gz -L \
-    https://github.com/deepin-community/deepin-rootfs/releases/download/${VERSION}/${REL}-docker-rootfs-${ARCH}.tar.gz && \
   tar xf \
     /rootfs.tar.gz -C \
     /root-out && \
@@ -109,8 +107,6 @@ RUN \
     apt-utils \
     locales && \
   echo "**** install packages ****" && \
-  curl -o catatonit.deb -L http://deb.debian.org/debian/pool/main/c/catatonit/catatonit_0.1.7-1%2bb1_amd64.deb && \
-  apt install ./catatonit.deb && \
   apt-get install -y \
     cron \
     curl \
@@ -118,9 +114,13 @@ RUN \
     jq \
     netcat-traditional \
     tzdata && \
+  curl -o catatonit.deb -L http://deb.debian.org/debian/pool/main/c/catatonit/catatonit_0.1.5-2_amd64.deb && \
+  apt install ./catatonit.deb && \
+  rm *.deb && \
   echo "**** add all sources ****" && \
-  echo "deb https://community-packages.deepin.com/beige/ beige main commercial community" > /etc/apt/sources.list && \
-  echo "deb-src https://community-packages.deepin.com/beige/ beige main commercial community" >> /etc/apt/sources.list && \
+  echo "deb https://community-packages.deepin.com/deepin/ apricot main contrib non-free" > /etc/apt/sources.list && \
+  echo "deb-src https://community-packages.deepin.com/deepin/ apricot main contrib non-free" >> /etc/apt/sources.list && \
+  rm -f /etc/apt/sources.list.d/debian.sources && \
   echo "**** generate locale ****" && \
   locale-gen en_US.UTF-8 && \
   echo "**** create abc user and make our folders ****" && \
